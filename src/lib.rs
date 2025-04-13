@@ -5,3 +5,6 @@ pub mod plugin;
 pub mod release;
 
 mod utils;
+
+pub use error::ObsidianError;
+pub use obsidian::Obsidian;
