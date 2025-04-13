@@ -10,7 +10,7 @@ use tar::Archive;
 use serde_json;
 use serde_json::Value;
 
-use std::io::{copy, BufWriter, Write};
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 /// Represents an Obsidian vault.
@@ -38,12 +38,9 @@ impl Obsidian {
         let manifest_url = plugin.get_manifest_url();
 
         // Download and parse the plugin's manifest
-        println!("Downloading manifest from {}", manifest_url);
         let manifest_string = utils::slurp_url(manifest_url);
 
-        println!("Parsing manifest '{}'", manifest_string);
         if let Ok(manifest) = PluginManifest::from_manifest(&manifest_string) {
-            // https://github.com/Taitava/obsidian-shellcommands/archive/refs/tags/0.23.0.tar.gz
             let release_url = format!(
                 "{}/archive/refs/tags/{}.tar.gz",
                 plugin.get_repo_url(),
@@ -53,18 +50,11 @@ impl Obsidian {
             // Download the plugin from the given URL
             let temp = utils::get_temp_filename();
 
-            println!(
-                "Downloading plugin from {} to {}",
-                release_url,
-                temp.display()
-            );
             if utils::download_to_file(release_url, temp.clone()).is_ok() {
-                println!("Opening temp file");
                 if let Ok(tar_gz) = File::open(temp) {
                     // extract the plugin to ~/plugins/<plugin_name>
                     let tar = GzDecoder::new(tar_gz);
                     let mut archive = Archive::new(tar);
-                    println!("unpacking archive to new path");
                     if archive.unpack(path).is_ok() {
                         return true;
                     }
@@ -103,14 +93,6 @@ impl Obsidian {
                     // write the file
                     return self.write(plugins, self.config_path.join("community-plugins.json"));
                 }
-                // let url = plugin.get_repo_url();
-                // let temp = get_temp_filename();
-                // // download the plugin into a temporary file
-                // if self.download_plugin(url, temp) {
-                //     // Extract the tarball into the plugin folder
-                //     // fs::rename(temp, path.join("plugin.zip")).unwrap();
-
-                // }
             }
         }
         false

@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
+/// Verify that the file exists.
 pub fn file_exists<P: AsRef<Path>>(filename: P) -> bool {
     let mut path = PathBuf::new();
     path.push(filename);
@@ -22,6 +23,7 @@ pub fn slurp<P: AsRef<Path>>(filename: P) -> String {
     md
 }
 
+/// Read in the contents of the URL to a String
 pub fn slurp_url(url: String) -> String {
     let mut body = String::new();
     if let Ok(resp) = reqwest::blocking::get(url) {
@@ -29,12 +31,15 @@ pub fn slurp_url(url: String) -> String {
     }
     body
 }
+
+/// Get a temporary filename
 pub fn get_temp_filename() -> PathBuf {
     let mut temp_dir = std::env::temp_dir();
     temp_dir.push(uuid::Uuid::new_v4().to_string());
     temp_dir
 }
 
+/// Download a file from a URL to a file
 pub fn download_to_file(url: String, filename: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     if let Ok(resp) = reqwest::blocking::get(url) {
         if let Ok(bytes) = resp.bytes() {
@@ -46,5 +51,5 @@ pub fn download_to_file(url: String, filename: PathBuf) -> Result<(), Box<dyn st
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
 }

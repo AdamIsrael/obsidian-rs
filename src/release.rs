@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 
 use std::fs::{create_dir_all, remove_file, File};
-use std::io::{copy, BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::io::copy;
+use std::path::PathBuf;
 use std::time::UNIX_EPOCH;
 
 #[derive(Serialize, Deserialize)]
