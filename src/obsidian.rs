@@ -20,6 +20,7 @@ pub struct Obsidian {
 }
 
 impl Obsidian {
+    // Opens an Obsidian vault from the given path
     pub fn new<P: AsRef<Path>>(path: P) -> Self {
         let vault_path: PathBuf = path.as_ref().to_string_lossy().into_owned().into();
         let config_path = vault_path.join(".obsidian");
@@ -41,12 +42,10 @@ impl Obsidian {
         let manifest_string = utils::slurp_url(manifest_url);
 
         if let Ok(manifest) = PluginManifest::from_manifest(&manifest_string) {
-            // Change of plans. This worked, kind of, but it's not following recommend process. This should download
-            // the following files from the release:
+            // To install a plugin, we need to download the following files from the plugin's latest release:
             // - main.js
             // - manifest.json
             // - style.css (if it exists)
-            // And that's all.
             let required_files = 2;
             let mut found_files = 0;
             for file in PLUGIN_FILES {
@@ -86,17 +85,18 @@ impl Obsidian {
     /// Install a community plugin by id
     pub fn install_community_plugin(&mut self, id: String) -> bool {
         if let Ok(mut plugins) = self.get_installed_community_plugins() {
+            // Check the latest community plugins released and look for this plugin
             if let Some(plugin) = ObsidianReleases::new()
                 .community_plugins
                 .iter()
                 .find(|p| p.id == id)
             {
-                // Install the plugin
                 // create the plugin folder, i.e., plugins/<plugin_name>
                 let path = self.config_path.join("plugins").join(&plugin.id);
                 create_dir_all(&path).unwrap();
 
                 if self.download_plugin(plugin, path) {
+                    // We downloaded the plugin successfully, so enable it.
                     plugins.push(serde_json::to_value(&plugin.id).unwrap());
                     // write the file
                     return self.write(plugins, self.config_path.join("community-plugins.json"));
