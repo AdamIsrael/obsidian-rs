@@ -3,15 +3,15 @@ use super::plugin::PluginManifest;
 use super::release::ObsidianReleases;
 use super::utils;
 
-use flate2::read::GzDecoder;
 use std::fs::{create_dir_all, remove_file, File};
-use tar::Archive;
 
-use serde_json;
 use serde_json::Value;
 
+use std::fs::remove_dir_all;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
+
+const PLUGIN_FILES: &[&str] = &["main.js", "manifest.json", "style.css"];
 
 /// Represents an Obsidian vault.
 pub struct Obsidian {
@@ -41,30 +41,37 @@ impl Obsidian {
         let manifest_string = utils::slurp_url(manifest_url);
 
         if let Ok(manifest) = PluginManifest::from_manifest(&manifest_string) {
-            let release_url = format!(
-                "{}/archive/refs/tags/{}.tar.gz",
-                plugin.get_repo_url(),
-                manifest.version
-            );
+            // Change of plans. This worked, kind of, but it's not following recommend process. This should download
+            // the following files from the release:
+            // - main.js
+            // - manifest.json
+            // - style.css (if it exists)
+            // And that's all.
+            let required_files = 2;
+            let mut found_files = 0;
+            for file in PLUGIN_FILES {
+                // Download the file
+                let release_url = format!(
+                    "{}/archive/refs/tags/{}/{}",
+                    plugin.get_repo_url(),
+                    manifest.version,
+                    file
+                );
 
-            // Download the plugin from the given URL
-            let temp = utils::get_temp_filename();
-
-            if utils::download_to_file(release_url, temp.clone()).is_ok() {
-                if let Ok(tar_gz) = File::open(temp) {
-                    // extract the plugin to ~/plugins/<plugin_name>
-                    let tar = GzDecoder::new(tar_gz);
-                    let mut archive = Archive::new(tar);
-                    if archive.unpack(path).is_ok() {
-                        return true;
-                    }
+                let fp = format!("{}/{}", path.display(), file);
+                if utils::download_to_file(release_url, PathBuf::from(fp)).is_ok() {
+                    found_files += 1;
                 }
+            }
+            if found_files >= required_files {
+                return true;
             }
         }
         false
     }
 
-    pub fn get_community_plugins(&self) -> serde_json::Result<Vec<serde_json::Value>> {
+    /// Get the installed community plugins
+    pub fn get_installed_community_plugins(&self) -> serde_json::Result<Vec<serde_json::Value>> {
         let path = self.config_path.join("community-plugins.json");
         if utils::file_exists(&path) {
             let contents = utils::slurp(&path);
@@ -76,8 +83,9 @@ impl Obsidian {
         Ok(vec![])
     }
 
+    /// Install a community plugin by id
     pub fn install_community_plugin(&mut self, id: String) -> bool {
-        if let Ok(mut plugins) = self.get_community_plugins() {
+        if let Ok(mut plugins) = self.get_installed_community_plugins() {
             if let Some(plugin) = ObsidianReleases::new()
                 .community_plugins
                 .iter()
@@ -98,16 +106,16 @@ impl Obsidian {
         false
     }
 
+    /// Uninstall a community plugin by id
     pub fn uninstall_community_plugin(&mut self, plugin: String) -> bool {
-        if let Ok(mut plugins) = self.get_community_plugins() {
+        if let Ok(mut plugins) = self.get_installed_community_plugins() {
             // Iterate through the plugins and remove the one that matches
             let index = plugins.iter().position(|x| *x == plugin).unwrap();
             plugins.remove(index);
 
             // Remove the plugin from the filesystem
-            // TODO: Test this
-            // let plugin_path = self.config_path.join("plugins").join(plugin);
-            // let _ = remove_dir_all(plugin_path);
+            let plugin_path = self.config_path.join("plugins").join(plugin);
+            let _ = remove_dir_all(plugin_path);
 
             let path = self.config_path.join("community-plugins.json");
             if plugins.is_empty() {
@@ -171,7 +179,7 @@ mod tests {
         let vault_path = PathBuf::from("./vaults/Blank");
         let mut obsidian = Obsidian::new(vault_path);
 
-        let plugins = obsidian.get_community_plugins();
+        let plugins = obsidian.get_installed_community_plugins();
 
         assert_eq!(plugins.unwrap().len(), 0);
 
@@ -179,13 +187,13 @@ mod tests {
         // I may not want to actually download it during unit tests?
         // I could maybe add a fake plugin into my git repo, though, so I can test the code.
         obsidian.install_community_plugin("obsidian-shellcommands".to_string());
-        let plugins = obsidian.get_community_plugins();
+        let plugins = obsidian.get_installed_community_plugins();
 
         assert_eq!(plugins.unwrap().len(), 1);
 
         // Remove a plugin
         obsidian.uninstall_community_plugin("obsidian-shellcommands".to_string());
-        let plugins = obsidian.get_community_plugins();
+        let plugins = obsidian.get_installed_community_plugins();
 
         assert_eq!(plugins.unwrap().len(), 0);
     }

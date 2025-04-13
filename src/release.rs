@@ -3,7 +3,6 @@ use super::error::ObsidianError;
 use super::utils;
 
 use serde::{Deserialize, Serialize};
-use serde_json;
 
 use std::fs::{create_dir_all, remove_file, File};
 use std::io::copy;

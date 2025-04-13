@@ -32,14 +32,15 @@ pub fn slurp_url(url: String) -> String {
     body
 }
 
-/// Get a temporary filename
-pub fn get_temp_filename() -> PathBuf {
-    let mut temp_dir = std::env::temp_dir();
-    temp_dir.push(uuid::Uuid::new_v4().to_string());
-    temp_dir
-}
+// /// Get a temporary filename
+// pub fn get_temp_filename() -> PathBuf {
+//     let mut temp_dir = std::env::temp_dir();
+//     temp_dir.push(uuid::Uuid::new_v4().to_string());
+//     temp_dir
+// }
 
 /// Download a file from a URL to a file
+/// If the file fails to download, nothing will be written to disk.
 pub fn download_to_file(url: String, filename: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     if let Ok(resp) = reqwest::blocking::get(url) {
         if let Ok(bytes) = resp.bytes() {
