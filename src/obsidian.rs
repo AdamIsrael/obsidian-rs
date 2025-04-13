@@ -165,17 +165,6 @@ mod tests {
 
     #[test]
     fn test_community_plugins() {
-        // let data = r#"
-        //     [
-        //       "metadata-extractor",
-        //       "obsidian-advanced-uri",
-        //       "obsidian-enhancing-export",
-        //       "cmdr",
-        //       "obsidian-shellcommands",
-        //       "dataview",
-        //       "templater-obsidian"
-        //     ]
-        // "#;
         let vault_path = PathBuf::from("./vaults/Blank");
         let mut obsidian = Obsidian::new(vault_path);
 
