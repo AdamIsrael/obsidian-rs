@@ -1,9 +1,8 @@
-pub mod community_plugin;
-pub mod error;
-pub mod obsidian;
-pub mod plugin;
-pub mod release;
-
+mod community_plugin;
+mod error;
+mod obsidian;
+mod plugin;
+mod release;
 mod utils;
 
 pub use error::ObsidianError;
