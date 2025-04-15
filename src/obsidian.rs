@@ -11,7 +11,7 @@ use std::fs::remove_dir_all;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
-const PLUGIN_FILES: &[&str] = &["main.js", "manifest.json", "style.css"];
+const PLUGIN_FILES: &[&str] = &["main.js", "manifest.json", "styles.css"];
 
 /// Represents an Obsidian vault.
 pub struct Obsidian {
