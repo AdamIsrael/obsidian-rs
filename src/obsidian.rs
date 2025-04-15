@@ -51,7 +51,7 @@ impl Obsidian {
             for file in PLUGIN_FILES {
                 // Download the file
                 let release_url = format!(
-                    "{}/archive/refs/tags/{}/{}",
+                    "{}/releases/download/{}/{}",
                     plugin.get_repo_url(),
                     manifest.version,
                     file
