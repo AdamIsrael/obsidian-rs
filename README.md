@@ -13,3 +13,10 @@ If you find this crate useful but not working for your specific use case, please
 What version of Obsidian is supported?
 
 1.8.9+
+
+
+## Changelog
+
+- 0.1.2 - Fixed path to download plugin release files
+- 0.1.1 - Mostly functional first release
+- 0.1.0 - Initial release (placeholder)
